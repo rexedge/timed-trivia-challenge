@@ -86,7 +86,7 @@ export async function createGame(data: {
 
     // Calculate question display times
     const startTime = new Date(data.startTime);
-    const endTime = new Date(data.endTime);
+    // const endTime = new Date(data.endTime);
     // const totalDuration = endTime.getTime() - startTime.getTime();
     const intervalMs = 15 * 60 * 1000; // 15 minutes in milliseconds
 
