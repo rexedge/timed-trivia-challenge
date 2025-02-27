@@ -43,6 +43,7 @@ export async function submitAnswer({
         score,
       },
     });
+    console.log({ response });
 
     revalidatePath(`/dashboard/game`);
     revalidatePath(`/dashboard/leaderboard`);

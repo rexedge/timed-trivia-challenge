@@ -41,6 +41,7 @@ export function QuestionsList({
           description: "The question has been deleted successfully.",
         });
       } catch (error) {
+        console.log({ error });
         toast.error("Error", {
           description: "Failed to delete the question.",
         });

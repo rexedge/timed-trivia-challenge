@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { User } from "@prisma/client";
 
 export async function getLeaderboard(gameId: string) {
   // Get all responses for the game
@@ -21,13 +22,12 @@ export async function getLeaderboard(gameId: string) {
 
   // Group responses by user and calculate total score
   const userScores = responses.reduce(
-    //@ts-expect-error: expected the error
     (acc, response) => {
       const userId = response.userId;
 
       if (!acc[userId]) {
         acc[userId] = {
-          user: response.user,
+          user: response.user as User,
           totalScore: 0,
           correctAnswers: 0,
           totalAnswers: 0,
@@ -46,7 +46,7 @@ export async function getLeaderboard(gameId: string) {
     {} as Record<
       string,
       {
-        user: any;
+        user: User;
         totalScore: number;
         correctAnswers: number;
         totalAnswers: number;
@@ -56,13 +56,11 @@ export async function getLeaderboard(gameId: string) {
 
   // Convert to array and sort by total score
   const leaderboard = Object.values(userScores).sort(
-    //@ts-expect-error: expected the error
     (a, b) => b.totalScore - a.totalScore
   );
 
   // Add rank to each entry
   return leaderboard.map((entry, index) => ({
-    //@ts-expect-error: expected the error
     ...entry,
     rank: index + 1,
   }));

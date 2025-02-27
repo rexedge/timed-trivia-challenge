@@ -81,7 +81,7 @@ export function CompleteProfileForm({ email }: { email: string }) {
                 <Input placeholder="Enter your phone number" {...field} />
               </FormControl>
               <FormDescription>
-                We'll use this to contact you about the game.
+                We&apos;ll use this to contact you about the game.
               </FormDescription>
               <FormMessage />
             </FormItem>
