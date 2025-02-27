@@ -8,12 +8,11 @@ export const metadata: Metadata = {
   description: "Complete your profile to continue",
 };
 
-export default async function CompleteProfilePage({
-  searchParams,
-}: {
-  searchParams: { email?: string };
+export default async function CompleteProfilePage(props: {
+  searchParams: Promise<{ email?: string }>;
 }) {
   const session = await auth();
+  const searchParams = await props.searchParams;
 
   // Redirect to dashboard if already logged in with complete profile
   if (session?.user?.phoneNumber) {
