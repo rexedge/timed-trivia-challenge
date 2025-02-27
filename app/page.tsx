@@ -7,26 +7,6 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
-              <span className="font-bold">Timed Trivia Challenge</span>
-            </Link>
-          </div>
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            {session ? (
-              <Link href="/dashboard">
-                <Button>Dashboard</Button>
-              </Link>
-            ) : (
-              <Link href="/login">
-                <Button>Sign In</Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
           <div className="mx-auto container px-4 md:px-6">

@@ -35,7 +35,7 @@ export function DashboardNav() {
   ];
 
   return (
-    <nav className="grid items-start gap-2">
+    <nav className="grid items-start gap-2 border-r py-5">
       {items.map((item, index) => (
         <Link
           key={index}
