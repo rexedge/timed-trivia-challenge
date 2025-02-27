@@ -15,13 +15,12 @@ export function LoginForm() {
     try {
       const result = await signIn("google");
       if (result?.error) {
-        toast.error("Error", {
+        toast("Error", {
           description: result.error,
         });
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Error", {
+      toast("Error", {
         description: "Something went wrong. Please try again.",
       });
     } finally {

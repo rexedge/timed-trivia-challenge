@@ -8,16 +8,16 @@ import { UserRole } from "@prisma/client";
 
 export async function signIn(provider: string) {
   try {
-    await nextAuthSignIn(provider);
+    await nextAuthSignIn(provider)
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid credentials." };
+        case "OAuthAccountNotLinked":
+          return { error: "This email is already associated with another account." }
         case "OAuthSignInError":
-          return { error: "Error signing in with OAuth." };
+          return { error: "Error signing in with OAuth." }
         default:
-          return { error: "Something went wrong." };
+          return { error: "Something went wrong." }
       }
     }
     throw error;

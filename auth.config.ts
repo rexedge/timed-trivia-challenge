@@ -33,12 +33,15 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
     async jwt({ token, user, account, profile }) {
-      if (user) {
-        token.role = user.role;
-        token.phoneNumber = user.phoneNumber;
-        token.profession = user.profession;
-      }
-      return token;
+       if (account && user) {
+         return {
+           ...token,
+           role: user.role,
+           phoneNumber: user.phoneNumber,
+           profession: user.profession,
+         };
+       }
+       return token;
     },
     async session({ session, token }) {
       if (session.user) {

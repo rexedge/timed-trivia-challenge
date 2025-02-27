@@ -4,12 +4,7 @@ import { authConfig } from "./auth.config";
 import { db } from "@/lib/db";
 import { UserRole } from "@prisma/client";
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+export const { handlers, auth, signIn, signOut } = NextAuth({
   // @ts-expect-error: expected an error here
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
@@ -17,37 +12,69 @@ export const {
   callbacks: {
     ...authConfig.callbacks,
     async signIn({ user, account, profile }) {
-      // Only allow sign in if email is verified
       if (!user.email) {
         return false;
       }
 
       try {
-        // Check if user exists
         const existingUser = await db.user.findUnique({
           where: { email: user.email },
+          include: {
+            accounts: true,
+          },
         });
 
-        // If user doesn't exist, create a new user with default role
+        // If user doesn't exist, allow sign in and create new user
         if (!existingUser) {
-          // Create user with basic info
-          await db.user.create({
+          const newUser = await db.user.create({
             data: {
               email: user.email,
               name: user.name,
               image: user.image,
-              role: UserRole.PLAYER, // Set default role
+              role: UserRole.PLAYER,
             },
           });
 
-          // Redirect to complete profile page
+          // Create the OAuth account link
+          if (account) {
+            await db.account.create({
+              data: {
+                userId: newUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+              },
+            });
+          }
+
           return `/complete-profile?email=${user.email}`;
         }
 
-        // Update the user object with the role from the database
-        user.role = existingUser.role;
-        user.phoneNumber = existingUser.phoneNumber;
-        user.profession = existingUser.profession;
+        // If user exists but has no account, link the account
+        if (existingUser.accounts.length === 0 && account) {
+          await db.account.create({
+            data: {
+              userId: existingUser.id,
+              type: account.type,
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            },
+          });
+          return true;
+        }
+
+        // If user exists and has no profile info, redirect to complete profile
+        if (!existingUser.phoneNumber || !existingUser.profession) {
+          return `/complete-profile?email=${user.email}`;
+        }
 
         return true;
       } catch (error) {
