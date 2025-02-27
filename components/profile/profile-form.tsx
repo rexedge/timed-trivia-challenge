@@ -68,6 +68,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
         });
       }
     } catch (error) {
+      console.log(error);
       toast.error("Error", {
         description: "Something went wrong. Please try again.",
       });

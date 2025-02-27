@@ -20,6 +20,7 @@ export function LoginForm() {
         });
       }
     } catch (error) {
+      console.log(error);
       toast("Error", {
         description: "Something went wrong. Please try again.",
       });
