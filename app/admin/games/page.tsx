@@ -2,11 +2,11 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminShell } from "@/components/admin/admin-shell";
-// import { GamesList } from "@/components/admin/games/games-list";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { GamesList } from "@/components/admin/games/game-list";
 
 export default async function GamesPage() {
   const session = await auth();
@@ -29,8 +29,6 @@ export default async function GamesPage() {
     },
   });
 
-  console.log(games);
-
   return (
     <AdminShell>
       <AdminHeader heading="Games" text="Manage trivia games">
@@ -41,7 +39,7 @@ export default async function GamesPage() {
           </Button>
         </Link>
       </AdminHeader>
-      {/* <GamesList games={games} /> */}
+      <GamesList games={games} />
     </AdminShell>
   );
 }

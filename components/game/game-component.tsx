@@ -108,14 +108,24 @@ export function GameComponent({
       const timeToAnswer = (endTime.getTime() - startTime.getTime()) / 1000; // in seconds
 
       const response = await submitAnswer({
-        userId,
         gameId,
         questionId: currentQuestion.questionId,
         answer: selectedAnswer,
-        timeToAnswer,
       });
 
-      setResult(response);
+      if (response.data) {
+        setResult({
+          isCorrect: response.data?.answer === selectedAnswer,
+          score: response.data?.score,
+          timeToAnswer: response.data?.timeToAnswer,
+        });
+      } else {
+        setResult({
+          isCorrect: false,
+          score: 0,
+          timeToAnswer: 0,
+        });
+      }
     } catch (error) {
       console.error("Error submitting answer:", error);
     } finally {

@@ -3,20 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Question } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -25,28 +23,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trash } from "lucide-react";
-import { createQuestion, updateQuestion } from "@/app/actions/admin-actions";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { createQuestion, updateQuestion } from "@/app/actions/question-actions";
 
 const formSchema = z.object({
-  text: z.string().min(5, {
-    message: "Question text must be at least 5 characters.",
-  }),
-  options: z
-    .array(
-      z.string().min(1, {
-        message: "Option cannot be empty.",
-      })
-    )
-    .min(2, {
-      message: "At least 2 options are required.",
-    }),
-  correctAnswer: z.string().min(1, {
-    message: "Correct answer is required.",
-  }),
+  text: z.string().min(1, "Question text is required"),
+  options: z.array(z.string()).min(2, "At least two options are required"),
+  correctAnswer: z.string().min(1, "Correct answer is required"),
 });
-
-type FormValues = z.infer<typeof formSchema>;
 
 interface QuestionFormProps {
   question?: Question;
@@ -54,42 +40,61 @@ interface QuestionFormProps {
 
 export function QuestionForm({ question }: QuestionFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [options, setOptions] = useState<string[]>(
+    question ? JSON.parse(question.options) : ["", ""]
+  );
 
-  // Parse options from JSON string if editing
-  const initialOptions = question
-    ? (JSON.parse(question.options as string) as string[])
-    : ["", ""];
-
-  const form = useForm<FormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       text: question?.text || "",
-      options: initialOptions,
+      options: question ? JSON.parse(question.options) : ["", ""],
       correctAnswer: question?.correctAnswer || "",
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    // @ts-expect-error: expected an error here
-    name: "options",
-  });
-
-  async function onSubmit(values: FormValues) {
-    setIsSubmitting(true);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
     try {
-      if (question) {
-        await updateQuestion(question.id, values);
-      } else {
-        await createQuestion(values);
+      const action = question
+        ? updateQuestion(question.id, values)
+        : createQuestion(values);
+
+      const result = await action;
+
+      if (!result.success) {
+        toast.error("Error", {
+          description: result.message || "Something went wrong",
+        });
+        return;
       }
+
+      toast.success("Success", {
+        description: `Question ${
+          question ? "updated" : "created"
+        } successfully`,
+      });
+      router.push("/admin/questions");
     } catch (error) {
-      console.error("Error saving question:", error);
+      toast.error("Error", {
+        description: "Something went wrong",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   }
+
+  const addOption = () => {
+    setOptions([...options, ""]);
+    form.setValue("options", [...options, ""]);
+  };
+
+  const removeOption = (index: number) => {
+    const newOptions = options.filter((_, i) => i !== index);
+    setOptions(newOptions);
+    form.setValue("options", newOptions);
+  };
 
   return (
     <Card>
@@ -97,8 +102,8 @@ export function QuestionForm({ question }: QuestionFormProps) {
         <CardTitle>{question ? "Edit Question" : "New Question"}</CardTitle>
         <CardDescription>
           {question
-            ? "Update the question details"
-            : "Add a new trivia question"}
+            ? "Update your trivia question"
+            : "Create a new trivia question"}
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -111,57 +116,45 @@ export function QuestionForm({ question }: QuestionFormProps) {
                 <FormItem>
                   <FormLabel>Question Text</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter the question" {...field} />
+                    <Textarea {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <FormLabel>Options</FormLabel>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append("")}
-                >
-                  Add Option
-                </Button>
-              </div>
-
-              {fields.map((field, index) => (
-                <div key={field.id} className="flex items-center gap-2">
-                  <FormField
-                    control={form.control}
-                    name={`options.${index}`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
+              <FormLabel>Options</FormLabel>
+              {options.map((_, index) => (
+                <FormField
+                  key={index}
+                  control={form.control}
+                  name={`options.${index}`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex gap-2">
                         <FormControl>
-                          <Input
-                            placeholder={`Option ${index + 1}`}
-                            {...field}
-                          />
+                          <Input {...field} />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  {index > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => remove(index)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
+                        {options.length > 2 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeOption(index)}
+                          >
+                            ×
+                          </Button>
+                        )}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
+                />
               ))}
+              <Button type="button" variant="outline" onClick={addOption}>
+                Add Option
+              </Button>
             </div>
-
             <FormField
               control={form.control}
               name="correctAnswer"
@@ -169,11 +162,8 @@ export function QuestionForm({ question }: QuestionFormProps) {
                 <FormItem>
                   <FormLabel>Correct Answer</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter the correct answer" {...field} />
+                    <Input {...field} />
                   </FormControl>
-                  <FormDescription>
-                    This must match one of the options exactly.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -187,12 +177,8 @@ export function QuestionForm({ question }: QuestionFormProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting
-                ? "Saving..."
-                : question
-                ? "Update Question"
-                : "Create Question"}
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : question ? "Update" : "Create"}
             </Button>
           </CardFooter>
         </form>

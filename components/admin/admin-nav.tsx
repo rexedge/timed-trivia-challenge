@@ -35,10 +35,14 @@ export function AdminNav() {
       title: "Users",
       href: "/admin/users",
     },
+    {
+      title: "Profile",
+      href: "/admin/profile",
+    },
   ];
 
   return (
-    <nav className="grid items-start gap-2 border-r py-5">
+    <nav className="grid items-start gap-2 py-5">
       {items.map((item, index) => (
         <Link
           key={index}
