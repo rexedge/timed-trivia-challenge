@@ -38,13 +38,13 @@ export async function createGame(data: {
     }
 
     // Validate durations
-    if (data.answerTime < 30 || data.answerTime > 600) {
+    if (data.answerTime < 5 || data.answerTime > 600) {
       return { success: false, message: "Invalid answer time duration" };
     }
-    if (data.resultTime < 30 || data.resultTime > 600) {
+    if (data.resultTime < 5 || data.resultTime > 600) {
       return { success: false, message: "Invalid result time duration" };
     }
-    if (data.intervalTime < 30 || data.intervalTime > 900) {
+    if (data.intervalTime < 5 || data.intervalTime > 900) {
       return { success: false, message: "Invalid interval time duration" };
     }
 

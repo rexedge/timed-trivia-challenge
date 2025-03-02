@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
-import { Upload } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -157,8 +157,8 @@ export function ExcelUpload() {
             <label htmlFor="excel-upload">
               <Button variant="outline" className="cursor-pointer" asChild>
                 <span>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Excel
+                  <Upload className="h-4 w-4" />
+                  <span className="ml-2 hidden md:block">Upload Excel</span>
                 </span>
               </Button>
             </label>
@@ -208,8 +208,11 @@ export function ExcelUpload() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Button variant="outline" onClick={downloadTemplate}>
-        Download Template
+      <Button variant="outline" onClick={downloadTemplate} asChild>
+        <span>
+          <Download className="h-4 w-4" />
+          <span className="ml-2 hidden md:block">Download Template</span>
+        </span>
       </Button>
     </div>
   );

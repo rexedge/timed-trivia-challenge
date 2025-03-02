@@ -68,7 +68,7 @@ export async function completeProfile(data: {
       });
     }
 
-    redirect("/login");
+    redirect("/dashboard");
   } catch (error) {
     console.error("Error completing profile:", error);
     return { error: "Failed to complete profile" };

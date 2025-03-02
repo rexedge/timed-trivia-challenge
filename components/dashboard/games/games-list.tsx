@@ -36,9 +36,9 @@ export function GamesList({
   return (
     <Tabs defaultValue="current" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="current">Current Game</TabsTrigger>
-        <TabsTrigger value="upcoming">Upcoming Games</TabsTrigger>
-        <TabsTrigger value="past">Past Games</TabsTrigger>
+        <TabsTrigger value="current">Current</TabsTrigger>
+        <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+        <TabsTrigger value="past">Past</TabsTrigger>
       </TabsList>
 
       <TabsContent value="current">

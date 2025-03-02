@@ -35,9 +35,9 @@ const formSchema = z.object({
   questions: z.array(z.string()).min(1, {
     message: "Select at least one question",
   }),
-  answerTime: z.number().min(30).max(600), // 30 seconds to 10 minutes
-  resultTime: z.number().min(30).max(600),
-  intervalTime: z.number().min(30).max(900), // up to 15 minutes
+  answerTime: z.number().min(5).max(600), // 5 seconds to 10 minutes
+  resultTime: z.number().min(5).max(600),
+  intervalTime: z.number().min(5).max(900), // up to 15 minutes
 });
 
 interface GameFormProps {
@@ -135,7 +135,7 @@ export function GameForm({ questions }: GameFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        min={30}
+                        min={5}
                         max={600}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
@@ -158,7 +158,7 @@ export function GameForm({ questions }: GameFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        min={30}
+                        min={5}
                         max={600}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
@@ -179,7 +179,7 @@ export function GameForm({ questions }: GameFormProps) {
                     <FormControl>
                       <Input
                         type="number"
-                        min={30}
+                        min={5}
                         max={900}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
@@ -229,7 +229,7 @@ export function GameForm({ questions }: GameFormProps) {
               <FormMessage />
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between mt-4">
             <Button
               type="button"
               variant="outline"

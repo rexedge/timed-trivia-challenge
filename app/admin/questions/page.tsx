@@ -7,6 +7,7 @@ import { QuestionsList } from "@/components/admin/questions/questions-list";
 import { ExcelUpload } from "@/components/admin/questions/excel-upload";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { PlusCircle } from "lucide-react";
 
 interface QuestionsPageProps {
   searchParams: Promise<{
@@ -43,7 +44,12 @@ export default async function QuestionsPage(props: QuestionsPageProps) {
         <div className="flex gap-4">
           <ExcelUpload />
           <Link href="/admin/questions/new">
-            <Button>Add Question</Button>
+            <Button asChild>
+              <span>
+                <PlusCircle className="h-4 w-4" />
+                <span className="ml-2 hidden md:block">Add Question</span>
+              </span>
+            </Button>
           </Link>
         </div>
       </AdminHeader>

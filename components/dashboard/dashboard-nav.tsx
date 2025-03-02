@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { SignOutButton } from "@/components/auth/sign-out-button";
+import { Menu } from "lucide-react";
+import { useState } from "react";
 
 interface NavItem {
   title: string;
@@ -19,6 +20,7 @@ export function DashboardNav() {
     { title: "Game", href: "/dashboard/game" },
     { title: "Leaderboard", href: "/dashboard/leaderboard" },
     { title: "Profile", href: "/dashboard/profile" },
+    { title: "Chat", href: "/chat" },
   ];
 
   return (
@@ -38,13 +40,9 @@ export function DashboardNav() {
           {item.title}
         </Link>
       ))}
-      <SignOutButton className="w-full justify-start" />
     </nav>
   );
 }
-
-import { Menu } from "lucide-react";
-import { useState } from "react";
 
 export function DashboardNavMobile() {
   const pathname = usePathname();
@@ -55,6 +53,7 @@ export function DashboardNavMobile() {
     { title: "Game", href: "/dashboard/game" },
     { title: "Leaderboard", href: "/dashboard/leaderboard" },
     { title: "Profile", href: "/dashboard/profile" },
+    { title: "Chat", href: "/chat" },
   ];
 
   return (
@@ -96,7 +95,6 @@ export function DashboardNavMobile() {
               {item.title}
             </Link>
           ))}
-          <SignOutButton className="w-full justify-start" />
         </div>
       </nav>
     </>

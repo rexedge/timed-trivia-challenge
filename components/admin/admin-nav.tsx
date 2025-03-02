@@ -22,6 +22,7 @@ export function AdminNav() {
     { title: "Settings", href: "/admin/settings" },
     { title: "Users", href: "/admin/users" },
     { title: "Profile", href: "/admin/profile" },
+    { title: "Chat", href: "/chat" },
   ];
 
   return (
@@ -56,6 +57,7 @@ export function AdminNavMobile() {
     { title: "Settings", href: "/admin/settings" },
     { title: "Users", href: "/admin/users" },
     { title: "Profile", href: "/admin/profile" },
+    { title: "Chat", href: "/chat" },
   ];
 
   return (

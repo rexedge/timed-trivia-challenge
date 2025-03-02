@@ -48,6 +48,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
   responses     Response[]
+  sentMessages     ChatMessage[] @relation("SentMessages")
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
 }
 
 model Question {
@@ -71,6 +73,7 @@ model Game {
   intervalTime  Int           @default(300) // Default 5 minutes in seconds
   gameQuestions GameQuestion[]
   responses     Response[]
+  messages ChatMessage[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -118,6 +121,24 @@ model GameSettings {
   questionDuration Int      @default(300) // 5 minutes in seconds
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+model ChatMessage {
+  id          String    @id @default(cuid())
+  content     String
+  senderId    String
+  senderName  String
+  senderImage String?
+  recipientId String?   // For private messages
+  gameId      String?   // For game-specific chats
+  createdAt   DateTime  @default(now())
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+  recipient   User?     @relation("ReceivedMessages", fields: [recipientId], references: [id])
+  game        Game?     @relation(fields: [gameId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([gameId])
 }
 
 enum UserRole {
