@@ -43,7 +43,7 @@ export function GameEndDisplay({
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
-      <div className="container flex items-center justify-center min-h-screen">
+      <div className="mx-auto px-4 container flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <CardTitle className="text-center text-2xl">

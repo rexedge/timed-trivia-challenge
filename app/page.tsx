@@ -16,7 +16,7 @@ export default async function Home() {
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                 Join our Timed Trivia Challenge and compete with others. Answer
-                questions every 15 minutes and climb the leaderboard!
+                questions at set intervals and climb the leaderboard!
               </p>
               <div className="space-x-4">
                 {session ? (
@@ -59,14 +59,6 @@ export default async function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t py-6 md:py-0">
-        <div className="mx-auto container flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
-          <p className="text-center text-sm leading-loose text-muted-foreground">
-            © {new Date().getFullYear()} Timed Trivia Challenge. All rights
-            reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

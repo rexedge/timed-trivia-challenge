@@ -1,4 +1,4 @@
-import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { DashboardNav } from "./dashboard-nav";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <aside className="fixed top-14 z-30 -ml-2 pr-2 border-r hidden h-[calc(100vh-3.5rem)] w-full shrink-0 md:sticky md:block">
           <DashboardNav />
         </aside>
-        <main className="flex gap-5 w-full flex-col overflow-hidden py-5">
+        <main className="flex gap-5 w-full flex-col overflow-hidden p-4">
           {children}
         </main>
       </div>
