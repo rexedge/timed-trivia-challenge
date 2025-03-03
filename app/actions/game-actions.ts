@@ -447,3 +447,90 @@ export async function getGameStatus(gameId: string): Promise<ActionResponse> {
     };
   }
 }
+
+export async function updateGame(
+  id: string,
+  data: {
+    startTime: Date;
+    endTime: Date;
+    questions: string[];
+  }
+): Promise<ActionResponse> {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.id) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    // Check if user is admin
+    if (session.user.role !== UserRole.ADMIN) {
+      return { success: false, message: "Not authorized" };
+    }
+
+    // Check for overlapping games (excluding current game)
+    const hasOverlap = await db.game.count({
+      where: {
+        AND: [
+          { id: { not: id } },
+          {
+            OR: [
+              {
+                startTime: { lt: data.endTime },
+                endTime: { gt: data.startTime },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    if (hasOverlap > 0) {
+      return {
+        success: false,
+        message: "Another game is scheduled during this time period",
+      };
+    }
+
+    // Update the game
+    await db.game.update({
+      where: { id },
+      data: {
+        startTime: data.startTime,
+        endTime: data.endTime,
+      },
+    });
+
+    // Delete existing game questions
+    await db.gameQuestion.deleteMany({
+      where: { gameId: id },
+    });
+
+    // Calculate question display times
+    const totalDuration = data.endTime.getTime() - data.startTime.getTime();
+    const intervalMs = totalDuration / data.questions.length;
+
+    // Create new game questions
+    const gameQuestions = data.questions.map((questionId, index) => {
+      const displayTime = new Date(
+        data.startTime.getTime() + index * intervalMs
+      );
+
+      return {
+        gameId: id,
+        questionId,
+        displayTime,
+      };
+    });
+
+    await db.gameQuestion.createMany({
+      data: gameQuestions,
+    });
+
+    revalidatePath("/admin/games");
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating game:", error);
+    return { success: false, message: "Failed to update game" };
+  }
+}

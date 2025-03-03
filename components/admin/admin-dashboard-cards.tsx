@@ -32,7 +32,7 @@ export function AdminDashboardCards({ stats }: AdminDashboardCardsProps) {
         <CardFooter>
           <Link href="/admin/users" className="w-full">
             <Button variant="outline" className="w-full">
-              View Users
+              View
             </Button>
           </Link>
         </CardFooter>
@@ -47,7 +47,7 @@ export function AdminDashboardCards({ stats }: AdminDashboardCardsProps) {
         <CardFooter>
           <Link href="/admin/questions" className="w-full">
             <Button variant="outline" className="w-full">
-              Manage Questions
+              View
             </Button>
           </Link>
         </CardFooter>
@@ -62,14 +62,14 @@ export function AdminDashboardCards({ stats }: AdminDashboardCardsProps) {
         <CardFooter>
           <Link href="/admin/games" className="w-full">
             <Button variant="outline" className="w-full">
-              View Games
+              View
             </Button>
           </Link>
         </CardFooter>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Completed Games</CardTitle>
+          <CardTitle className="text-sm font-medium">Completed</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.completedGames}</div>
@@ -77,7 +77,7 @@ export function AdminDashboardCards({ stats }: AdminDashboardCardsProps) {
         <CardFooter>
           <Link href="/admin/games" className="w-full">
             <Button variant="outline" className="w-full">
-              View History
+              View
             </Button>
           </Link>
         </CardFooter>

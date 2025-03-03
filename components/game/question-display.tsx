@@ -1,89 +1,94 @@
 "use client";
 
-import { useState } from "react";
-import { Question } from "@prisma/client";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { QuestionTimer } from "./question-timer";
+import { Card } from "@/components/ui/card";
+import { pusherClient } from "@/lib/pusher";
 
 interface QuestionDisplayProps {
-  question: Question;
-  displayTime: Date;
-  duration: number;
-  onSubmit: (answer: string) => Promise<void>;
-  onTimeUp: () => void;
-  disabled?: boolean;
+  question: any; // Define proper type
+  gameId: string;
+  userId: string;
+  answerTime: number;
 }
 
 export function QuestionDisplay({
   question,
-  displayTime,
-  duration,
-  onSubmit,
-  onTimeUp,
-  disabled = false,
+  gameId,
+  userId,
+  answerTime,
 }: QuestionDisplayProps) {
-  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const options = JSON.parse(question.options);
+  const [timeRemaining, setTimeRemaining] = useState(answerTime);
+
+  useEffect(() => {
+    // Reset state when question changes
+    setSelectedAnswer(null);
+    setIsSubmitting(false);
+    setTimeRemaining(answerTime);
+
+    // Subscribe to question timer updates
+    const channel = pusherClient.subscribe(`game-${gameId}`);
+    channel.bind("timer-update", (data: { timeRemaining: number }) => {
+      setTimeRemaining(data.timeRemaining);
+    });
+
+    return () => {
+      pusherClient.unsubscribe(`game-${gameId}`);
+    };
+  }, [question.id, gameId, answerTime]);
 
   const handleSubmit = async () => {
     if (!selectedAnswer || isSubmitting) return;
 
     setIsSubmitting(true);
     try {
-      await onSubmit(selectedAnswer);
-    } finally {
-      setIsSubmitting(false);
+      const response = await fetch(`/api/games/${gameId}/answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: question.id,
+          answer: selectedAnswer,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit answer");
+      }
+    } catch (error) {
+      console.error("Error submitting answer:", error);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{question.text}</CardTitle>
-        <QuestionTimer
-          startTime={displayTime}
-          duration={duration}
-          onTimeUp={onTimeUp}
-        />
-      </CardHeader>
-      <CardContent>
-        <RadioGroup
-          value={selectedAnswer}
-          onValueChange={setSelectedAnswer}
-          className="space-y-3"
-          disabled={disabled || isSubmitting}
-        >
-          {options.map((option: string, index: number) => (
-            <div key={index} className="flex items-center space-x-2">
-              <RadioGroupItem
-                value={option}
-                id={`option-${index}`}
-                disabled={disabled || isSubmitting}
-              />
-              <Label htmlFor={`option-${index}`}>{option}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </CardContent>
-      <CardFooter>
-        <Button
-          onClick={handleSubmit}
-          disabled={!selectedAnswer || disabled || isSubmitting}
-          className="w-full"
-        >
-          {isSubmitting ? "Submitting..." : "Submit Answer"}
-        </Button>
-      </CardFooter>
+    <Card className="p-6 space-y-6">
+      {/* <div className="flex justify-between items-center">
+        <h3 className="text-xl font-bold">{question.text}</h3>
+        <QuestionTimer timeRemaining={timeRemaining} />
+      </div> */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {JSON.parse(question.options).map((option: string) => (
+          <Button
+            key={option}
+            variant={selectedAnswer === option ? "default" : "outline"}
+            className="p-4 h-auto text-left"
+            onClick={() => setSelectedAnswer(option)}
+            disabled={isSubmitting}
+          >
+            {option}
+          </Button>
+        ))}
+      </div>
+
+      <Button
+        className="w-full"
+        onClick={handleSubmit}
+        disabled={!selectedAnswer || isSubmitting}
+      >
+        Submit Answer
+      </Button>
     </Card>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Game, GameStatus } from "@prisma/client";
+import { Game, GameStatus, Question } from "@prisma/client";
 import {
   Table,
   TableBody,
@@ -38,9 +38,13 @@ interface GamesListProps {
       responses: number;
     };
   })[];
+  availableQuestions: Pick<Question, "id" | "text">[];
 }
 
-export function GamesList({ games: initialGames }: GamesListProps) {
+export function GamesList({
+  games: initialGames,
+  availableQuestions,
+}: GamesListProps) {
   const [games, setGames] = useState(initialGames);
 
   const handleStatusUpdate = async (gameId: string, status: GameStatus) => {
@@ -90,9 +94,9 @@ export function GamesList({ games: initialGames }: GamesListProps) {
 
   const getStatusBadgeVariant = (status: GameStatus) => {
     switch (status) {
-      case "ACTIVE":
+      case "IN_PROGRESS":
         return "outline";
-      case "COMPLETED":
+      case "ENDED":
         return "secondary";
       case "CANCELLED":
         return "destructive";
@@ -143,18 +147,26 @@ export function GamesList({ games: initialGames }: GamesListProps) {
                         <DropdownMenuItem>View Details</DropdownMenuItem>
                       </Link>
                       {game.status === "SCHEDULED" && (
-                        <DropdownMenuItem
-                          onClick={() => handleStatusUpdate(game.id, "ACTIVE")}
-                        >
-                          <Play className="mr-2 h-4 w-4" />
-                          Start Game
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleStatusUpdate(game.id, "IN_PROGRESS")
+                            }
+                          >
+                            <Play className="mr-2 h-4 w-4" />
+                            Start Game
+                          </DropdownMenuItem>
+                          {/* <DropdownMenuItem>
+                            <EditGame
+                              game={game}
+                              availableQuestions={availableQuestions}
+                            />
+                          </DropdownMenuItem> */}
+                        </>
                       )}
-                      {game.status === "ACTIVE" && (
+                      {game.status === "IN_PROGRESS" && (
                         <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusUpdate(game.id, "COMPLETED")
-                          }
+                          onClick={() => handleStatusUpdate(game.id, "ENDED")}
                         >
                           <Pause className="mr-2 h-4 w-4" />
                           End Game

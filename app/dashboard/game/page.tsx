@@ -4,11 +4,12 @@ import { getCurrentGame, getGameStatus } from "@/app/actions/game-actions";
 import { GameContainer } from "@/components/game/game-container";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { User } from "@prisma/client";
 
 export default async function GamePage() {
   const session = await auth();
 
-  if (!session) {
+  if (!session?.user) {
     redirect("/login");
   }
 
@@ -35,7 +36,7 @@ export default async function GamePage() {
       />
       <GameContainer
         gameId={currentGame.id}
-        userId={session.user.id}
+        user={session.user as User}
         initialGameData={statusResult.data}
       />
     </DashboardShell>

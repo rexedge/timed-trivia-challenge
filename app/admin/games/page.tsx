@@ -26,6 +26,23 @@ export default async function GamesPage() {
           responses: true,
         },
       },
+      gameQuestions: {
+        include: {
+          question: {
+            select: {
+              id: true,
+              text: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const availableQuestions = await db.question.findMany({
+    select: {
+      id: true,
+      text: true,
     },
   });
 
@@ -39,7 +56,7 @@ export default async function GamesPage() {
           </Button>
         </Link>
       </AdminHeader>
-      <GamesList games={games} />
+      <GamesList games={games} availableQuestions={availableQuestions} />
     </AdminShell>
   );
 }

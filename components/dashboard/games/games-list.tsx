@@ -58,7 +58,7 @@ export function GamesList({
                       {formatDateTime(currentGame.endTime)}
                     </p>
                   </div>
-                  <Link href="/dashboard/game">
+                  <Link href={`/dashboard/game/${currentGame.id}`}>
                     <Button>Join Game</Button>
                   </Link>
                 </div>
@@ -149,9 +149,7 @@ export function GamesList({
                         </p>
                         <Badge
                           variant={
-                            game.status === "COMPLETED"
-                              ? "secondary"
-                              : "default"
+                            game.status === "ENDED" ? "secondary" : "default"
                           }
                         >
                           {game.status}

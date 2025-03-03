@@ -7,6 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Existing models remain the same
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -48,6 +49,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   responses     Response[]
+  gameParticipations GameParticipant[] // Added for leaderboard
   sentMessages     ChatMessage[] @relation("SentMessages")
   receivedMessages ChatMessage[] @relation("ReceivedMessages")
 }
@@ -68,14 +70,32 @@ model Game {
   startTime     DateTime
   endTime       DateTime
   status        GameStatus     @default(SCHEDULED)
-  answerTime    Int           @default(300) // Default 5 minutes in seconds
-  resultTime    Int           @default(300) // Default 5 minutes in seconds
-  intervalTime  Int           @default(300) // Default 5 minutes in seconds
+  answerTime    Int           @default(30) // Changed to 30 seconds default
+  resultTime    Int           @default(15) // Changed to 15 seconds default
+  intervalTime  Int           @default(15) // Changed to 15 seconds default
   gameQuestions GameQuestion[]
   responses     Response[]
-  messages ChatMessage[]
+  participants  GameParticipant[] // Added for leaderboard
+  messages      ChatMessage[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+// Added for real-time game participation and leaderboard
+model GameParticipant {
+  id        String   @id @default(cuid())
+  gameId    String
+  userId    String
+  score     Float    @default(0)
+  rank      Int?     // Current rank in the game
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+  joinedAt  DateTime @default(now())
+  lastActive DateTime @default(now())
+
+  @@unique([gameId, userId])
+  @@index([gameId])
+  @@index([userId])
 }
 
 model GameQuestion {
@@ -83,7 +103,7 @@ model GameQuestion {
   gameId      String
   questionId  String
   displayTime DateTime  // When this question should be displayed
-  duration    Int       @default(300) // Duration in seconds (5 minutes)
+  duration    Int       @default(30) // Changed to 30 seconds default
   game       Game      @relation(fields: [gameId], references: [id], onDelete: Cascade)
   question   Question  @relation(fields: [questionId], references: [id])
   responses  Response[]
@@ -99,8 +119,9 @@ model Response {
   questionId     String
   userId         String
   gameQuestionId String
-  timeToAnswer  Float    // Time in seconds
+  timeToAnswer   Float       // Time taken to answer in seconds
   answer         String
+  isCorrect      Boolean     @default(false) // Added to track correct answers
   score          Float       // Base score + speed bonus
   answeredAt     DateTime    @default(now())
   game          Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
@@ -117,8 +138,8 @@ model GameSettings {
   id               String   @id @default(cuid())
   gameStartTime    String   // Daily start time (HH:mm)
   gameEndTime      String   // Daily end time (HH:mm)
-  questionInterval Int      @default(900) // 15 minutes in seconds
-  questionDuration Int      @default(300) // 5 minutes in seconds
+  questionInterval Int      @default(15) // Changed to 15 seconds default
+  questionDuration Int      @default(30) // Changed to 30 seconds default
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -148,7 +169,7 @@ enum UserRole {
 
 enum GameStatus {
   SCHEDULED
-  ACTIVE
-  COMPLETED
+  IN_PROGRESS // Changed ACTIVE to IN_PROGRESS for clarity
+  ENDED      // Changed COMPLETED to ENDED for clarity
   CANCELLED
 }

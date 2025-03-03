@@ -2,55 +2,40 @@
 
 import { useEffect, useState } from "react";
 import { Progress } from "@/components/ui/progress";
+import { pusherClient } from "@/lib/pusher";
 
 interface QuestionTimerProps {
-  startTime: Date;
   duration: number;
-  onTimeUp: () => void;
+  questionId: string;
+  gameId: string;
 }
 
 export function QuestionTimer({
-  startTime,
   duration,
-  onTimeUp,
+  questionId,
+  gameId,
 }: QuestionTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(duration);
-  const [progress, setProgress] = useState<number>(100);
+  const [timeRemaining, setTimeRemaining] = useState(duration);
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      const start = new Date(startTime);
-      const elapsed = (now.getTime() - start.getTime()) / 1000;
-      const remaining = Math.max(0, duration - elapsed);
+    setTimeRemaining(duration);
 
-      setTimeLeft(remaining);
-      setProgress((remaining / duration) * 100);
+    const channel = pusherClient.subscribe(`game-${gameId}`);
+    channel.bind("timer-update", (data: { timeRemaining: number }) => {
+      setTimeRemaining(data.timeRemaining);
+    });
 
-      if (remaining <= 0) {
-        onTimeUp();
-      }
+    return () => {
+      pusherClient.unsubscribe(`game-${gameId}`);
     };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(timer);
-  }, [startTime, duration, onTimeUp]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+  }, [duration, gameId, questionId]);
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span>Time Remaining</span>
-        <span>{formatTime(timeLeft)}</span>
-      </div>
-      <Progress value={progress} />
+    <div className="w-24 space-y-1">
+      <Progress value={(timeRemaining / duration) * 100} />
+      <p className="text-xs text-center text-muted-foreground">
+        {Math.ceil(timeRemaining)}s
+      </p>
     </div>
   );
 }

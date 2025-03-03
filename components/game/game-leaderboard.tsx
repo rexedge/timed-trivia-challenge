@@ -18,15 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PrivateChat } from "@/components/chat/private-chat";
-import type { GameParticipant } from "@prisma/client";
-
-interface ExtendedParticipant extends GameParticipant {
-  user: {
-    id: string;
-    name: string | null;
-    image: string | null;
-  };
-}
+import type { ExtendedParticipant } from "@/lib/types/game";
 
 interface GameLeaderboardProps {
   participants: ExtendedParticipant[];
@@ -57,7 +49,11 @@ export function GameLeaderboard({
                 className="flex items-center justify-between p-2 rounded-lg bg-muted"
               >
                 <div className="flex items-center gap-4">
-                  <span className="font-bold w-6">{index + 1}</span>
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
+                    <span className="text-xs font-bold text-primary">
+                      {index + 1}
+                    </span>
+                  </div>
                   <Avatar>
                     <AvatarImage src={participant.user.image || undefined} />
                     <AvatarFallback>

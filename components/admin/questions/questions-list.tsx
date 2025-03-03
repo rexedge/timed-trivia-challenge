@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Question } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import {
@@ -36,10 +35,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, Pencil, Trash } from "lucide-react";
+import { MoreHorizontal, Trash } from "lucide-react";
 import { deleteQuestion } from "@/app/actions/admin-actions";
 import { PaginationButton } from "@/components/pagination-button";
 import { toast } from "sonner";
+import { EditQuestion } from "./edit-question";
 
 interface QuestionsListProps {
   questions: Question[];
@@ -133,13 +133,7 @@ export function QuestionsList({ questions, pagination }: QuestionsListProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link
-                            href={`/admin/questions/${question.id}/edit`}
-                            className="flex items-center"
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </Link>
+                          <EditQuestion question={question} />
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="flex items-center text-destructive focus:text-destructive"

@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { ChatMessage } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+import { pusherServer } from "@/lib/pusher";
+
 export async function sendMessage(data: {
   content: string;
   recipientId?: string;
@@ -16,7 +18,7 @@ export async function sendMessage(data: {
       return { success: false, message: "Not authenticated" };
     }
 
-    await db.chatMessage.create({
+    const message = await db.chatMessage.create({
       data: {
         content: data.content,
         senderId: session.user.id,
@@ -26,6 +28,22 @@ export async function sendMessage(data: {
         gameId: data.gameId,
       },
     });
+
+    // Trigger real-time update
+    if (data.gameId) {
+      await pusherServer.trigger(`game-${data.gameId}`, "new-message", message);
+    } else if (data.recipientId) {
+      await pusherServer.trigger(
+        `private-chat-${data.recipientId}`,
+        "new-message",
+        message
+      );
+      await pusherServer.trigger(
+        `private-chat-${session.user.id}`,
+        "new-message",
+        message
+      );
+    }
 
     revalidatePath("/chat");
     if (data.gameId) revalidatePath(`/game/${data.gameId}`);
@@ -74,106 +92,17 @@ export async function getMessages(options: {
         ],
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
       take: options.limit || 50,
     });
 
     return {
       success: true,
-      messages: messages.reverse(),
+      messages,
     };
   } catch (error) {
     console.error("Error fetching messages:", error);
     return { success: false, message: "Failed to fetch messages" };
-  }
-}
-
-export async function getChatRooms(): Promise<{
-  success: boolean;
-  rooms?: any[];
-  message?: string;
-}> {
-  try {
-    const session = await auth();
-    if (!session?.user) {
-      return { success: false, message: "Not authenticated" };
-    }
-
-    // Get private chats
-    const privateChats = await db.chatMessage.findMany({
-      where: {
-        OR: [{ senderId: session.user.id }, { recipientId: session.user.id }],
-        NOT: {
-          gameId: { not: null },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      distinct: ["senderId", "recipientId"],
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-        recipient: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
-          },
-        },
-      },
-    });
-
-    // Get game chats
-    const gameChats = await db.chatMessage.findMany({
-      where: {
-        OR: [{ senderId: session.user.id }, { gameId: { not: null } }],
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      distinct: ["gameId"],
-      include: {
-        game: true,
-      },
-    });
-
-    // Process and combine the chats
-    const rooms = [
-      ...privateChats.map((chat) => ({
-        id: `private-${
-          chat.senderId === session.user.id ? chat.recipientId : chat.senderId
-        }`,
-        name:
-          chat.senderId === session.user.id
-            ? chat.recipient?.name
-            : chat.sender?.name,
-        image:
-          chat.senderId === session.user.id
-            ? chat.recipient?.image
-            : chat.sender?.image,
-        isPrivate: true,
-        lastMessage: chat,
-      })),
-      ...gameChats.map((chat) => ({
-        id: `game-${chat.gameId}`,
-        name: `Game Chat - ${new Date(
-          chat.game?.startTime || ""
-        ).toLocaleDateString()}`,
-        isPrivate: false,
-        lastMessage: chat,
-      })),
-    ];
-
-    return { success: true, rooms };
-  } catch (error) {
-    console.error("Error fetching chat rooms:", error);
-    return { success: false, message: "Failed to fetch chat rooms" };
   }
 }
