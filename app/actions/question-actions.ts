@@ -4,12 +4,15 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { z } from 'zod';
-import { UserRole } from '@prisma/client';
+import { UserRole, Category, Difficulty, QuestionSource } from '@prisma/client';
 
 const questionSchema = z.object({
 	text: z.string().min(1, 'Question text is required'),
 	options: z.array(z.string()).min(2, 'At least two options are required'),
 	correctAnswer: z.string().min(1, 'Correct answer is required'),
+	category: z.nativeEnum(Category),
+	difficulty: z.nativeEnum(Difficulty),
+	source: z.nativeEnum(QuestionSource).optional(),
 });
 
 type ActionResponse = {
@@ -58,6 +61,9 @@ export async function createQuestion(
 				text: data.text,
 				options: JSON.stringify(data.options),
 				correctAnswer: data.correctAnswer,
+				category: data.category,
+				difficulty: data.difficulty,
+				source: data.source || QuestionSource.MANUAL,
 			},
 		});
 
@@ -117,6 +123,9 @@ export async function updateQuestion(
 				text: data.text,
 				options: JSON.stringify(data.options),
 				correctAnswer: data.correctAnswer,
+				category: data.category,
+				difficulty: data.difficulty,
+				source: data.source,
 			},
 		});
 

@@ -42,6 +42,8 @@ model User {
   image         String?
   phoneNumber   String?
   profession    String?
+  dateOfBirth   DateTime?
+  sex           Sex?
   role          UserRole   @default(PLAYER)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -50,6 +52,10 @@ model User {
   responses     Response[]
   sentMessages     ChatMessage[] @relation("SentMessages")
   receivedMessages ChatMessage[] @relation("ReceivedMessages")
+  sentChallenges   Challenge[] @relation("SentChallenges")
+  receivedChallenges Challenge[] @relation("ReceivedChallenges")
+  dailyChallengeParticipations DailyChallengeParticipation[]
+  weeklyChallengeParticipations WeeklyChallengeParticipation[]
 }
 
 model Question {
@@ -57,6 +63,10 @@ model Question {
   text          String
   options       String         // JSON array of options
   correctAnswer String
+  category      Category       @default(GENERAL_KNOWLEDGE)
+  difficulty    Difficulty     @default(MEDIUM)
+  source        QuestionSource @default(MANUAL)
+  aiMetadata    String?        // JSON metadata for AI-generated questions
   gameQuestions GameQuestion[]
   responses     Response[]
   createdAt     DateTime       @default(now())
@@ -68,12 +78,16 @@ model Game {
   startTime     DateTime
   endTime       DateTime
   status        GameStatus     @default(SCHEDULED)
+  gameType      GameType       @default(PUBLIC)
+  category      Category?      // Optional category filter
+  difficulty    Difficulty?    // Optional difficulty filter
   answerTime    Int           @default(300) // Default 5 minutes in seconds
   resultTime    Int           @default(300) // Default 5 minutes in seconds
   intervalTime  Int           @default(300) // Default 5 minutes in seconds
   gameQuestions GameQuestion[]
   responses     Response[]
   messages ChatMessage[]
+  challenges    Challenge[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
@@ -151,4 +165,133 @@ enum GameStatus {
   ACTIVE
   COMPLETED
   CANCELLED
+}
+
+enum GameType {
+  PUBLIC
+  ONE_ON_ONE
+  DAILY
+  WEEKLY
+}
+
+enum Category {
+  GENERAL_KNOWLEDGE
+  SCIENCE
+  HISTORY
+  GEOGRAPHY
+  SPORTS
+  ENTERTAINMENT
+  TECHNOLOGY
+  ARTS_LITERATURE
+  CURRENT_EVENTS
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum QuestionSource {
+  MANUAL
+  AI_GENERATED
+  IMPORTED
+}
+
+enum Sex {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+  EXPIRED
+}
+
+model Challenge {
+  id           String          @id @default(cuid())
+  challengerId String
+  opponentId   String
+  gameId       String?         @unique
+  status       ChallengeStatus @default(PENDING)
+  category     Category?
+  difficulty   Difficulty?
+  questionCount Int            @default(5)
+  timeLimit    Int             @default(300) // seconds per question
+  expiresAt    DateTime
+  completedAt  DateTime?
+  challenger   User            @relation("SentChallenges", fields: [challengerId], references: [id])
+  opponent     User            @relation("ReceivedChallenges", fields: [opponentId], references: [id])
+  game         Game?           @relation(fields: [gameId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([challengerId])
+  @@index([opponentId])
+  @@index([status])
+}
+
+model DailyChallenge {
+  id             String                        @id @default(cuid())
+  date           DateTime                      @db.Date
+  category       Category
+  difficulty     Difficulty
+  questionCount  Int                           @default(10)
+  timeLimit      Int                           @default(300)
+  participations DailyChallengeParticipation[]
+  createdAt      DateTime                      @default(now())
+  updatedAt      DateTime                      @updatedAt
+
+  @@unique([date])
+  @@index([date])
+}
+
+model DailyChallengeParticipation {
+  id               String         @id @default(cuid())
+  userId           String
+  dailyChallengeId String
+  score            Float
+  completedAt      DateTime       @default(now())
+  user             User           @relation(fields: [userId], references: [id])
+  dailyChallenge   DailyChallenge @relation(fields: [dailyChallengeId], references: [id])
+  createdAt        DateTime       @default(now())
+
+  @@unique([userId, dailyChallengeId])
+  @@index([dailyChallengeId, score])
+}
+
+model WeeklyChallenge {
+  id             String                         @id @default(cuid())
+  weekStart      DateTime                       @db.Date
+  weekEnd        DateTime                       @db.Date
+  category       Category
+  difficulty     Difficulty
+  questionCount  Int                            @default(20)
+  timeLimit      Int                            @default(300)
+  participations WeeklyChallengeParticipation[]
+  createdAt      DateTime                       @default(now())
+  updatedAt      DateTime                       @updatedAt
+
+  @@unique([weekStart])
+  @@index([weekStart])
+}
+
+model WeeklyChallengeParticipation {
+  id                String          @id @default(cuid())
+  userId            String
+  weeklyChallengeId String
+  score             Float
+  completedAt       DateTime        @default(now())
+  user              User            @relation(fields: [userId], references: [id])
+  weeklyChallenge   WeeklyChallenge @relation(fields: [weeklyChallengeId], references: [id])
+  createdAt         DateTime        @default(now())
+
+  @@unique([userId, weeklyChallengeId])
+  @@index([weeklyChallengeId, score])
 }
