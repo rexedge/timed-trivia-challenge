@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { Footer } from "@/components/footer";
 import { auth } from "@/auth";
 import { MainNav } from "@/components/main-nav";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,19 +25,21 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="flex min-h-screen flex-col">
-            <MainNav isAdmin={session?.user?.role === "ADMIN"} />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster richColors />
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="flex min-h-screen flex-col">
+              <MainNav isAdmin={session?.user?.role === "ADMIN"} />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster richColors />
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );
